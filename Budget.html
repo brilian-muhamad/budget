@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rekap Pengeluaran & Sisa Budget</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Font Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .no-spinner::-webkit-inner-spin-button, 
+        .no-spinner::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col justify-between antialiased">
+
+    <header class="bg-gradient-to-r from-indigo-700 to-indigo-800 text-white shadow-lg sticky top-0 z-30">
+        <div class="max-w-5xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-3">
+            <div>
+                <h1 class="text-xl sm:text-2xl font-bold flex items-center gap-2.5">
+                    <i class="fa-solid fa-wallet text-indigo-300"></i> Rekap Pengeluaran Keluarga
+                </h1>
+                <p class="text-indigo-200 text-xs sm:text-sm mt-0.5">Periode: FIX (25 SEP - 25 OCT) | Budget Utama: Rp13.000.000</p>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="resetData()" class="bg-indigo-900/60 hover:bg-indigo-900 text-indigo-100 px-3.5 py-2 rounded-xl font-medium text-xs sm:text-sm transition active:scale-95 flex items-center gap-1.5 shadow-sm border border-indigo-500/30 cursor-pointer">
+                    <i class="fa-solid fa-rotate-right"></i> Reset Default
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-5xl w-full mx-auto px-4 py-6 flex-grow space-y-6">
+        
+        <!-- Summary Cards Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            
+            <!-- Card 1: Total Alokasi / Plafon Awal (13 Juta) -->
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4 relative overflow-hidden">
+                <div class="absolute -right-4 -bottom-4 text-indigo-50 opacity-40 text-7xl font-bold pointer-events-none">
+                    <i class="fa-solid fa-vault"></i>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl font-bold shrink-0">
+                    <i class="fa-solid fa-coins"></i>
+                </div>
+                <div>
+                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Plafon Budget</p>
+                    <h2 class="text-xl sm:text-2xl font-extrabold text-slate-800 mt-0.5">Rp13.000.000</h2>
+                </div>
+            </div>
+
+            <!-- Card 2: Total Pengeluaran / Transaksi yang Dilakukan -->
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4 relative overflow-hidden">
+                <div class="absolute -right-4 -bottom-4 text-rose-50 opacity-40 text-7xl font-bold pointer-events-none">
+                    <i class="fa-solid fa-arrow-trend-down"></i>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center text-xl font-bold shrink-0">
+                    <i class="fa-solid fa-receipt"></i>
+                </div>
+                <div>
+                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Transaksi / Terpakai</p>
+                    <h2 id="totalTerpakai" class="text-xl sm:text-2xl font-extrabold text-slate-800 mt-0.5">Rp0</h2>
+                </div>
+            </div>
+
+            <!-- Card 3: Sisa Budget Keseluruhan dari 13 Juta -->
+            <div class="bg-gradient-to-br from-indigo-600 to-indigo-700 text-white p-5 rounded-2xl shadow-md flex items-center gap-4 relative overflow-hidden">
+                <div class="absolute -right-4 -bottom-4 text-white opacity-10 text-7xl font-bold pointer-events-none">
+                    <i class="fa-solid fa-scale-balanced"></i>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-white/15 text-white flex items-center justify-center text-xl font-bold shrink-0">
+                    <i class="fa-solid fa-wallet"></i>
+                </div>
+                <div>
+                    <p class="text-xs font-semibold text-indigo-200 uppercase tracking-wider">Sisa Budget Keseluruhan</p>
+                    <h2 id="sisaBudgetGlobal" class="text-xl sm:text-2xl font-extrabold mt-0.5">Rp13.000.000</h2>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Section Info & Counter -->
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 bg-white px-5 py-4 rounded-2xl shadow-sm border border-slate-100">
+            <div>
+                <h3 class="font-bold text-slate-800 text-base sm:text-lg flex items-center gap-2">
+                    <i class="fa-solid fa-list-check text-indigo-600"></i> Plot Pengeluaran & Input Pengurang
+                </h3>
+                <p class="text-xs text-slate-500 mt-0.5">Masukkan nominal transaksi pada masing-masing plot. Sisa budget total dari Rp13 Juta akan berkurang secara otomatis.</p>
+            </div>
+            <span id="itemCount" class="text-xs bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-full font-semibold shrink-0">0 Plot</span>
+        </div>
+
+        <!-- Plots Container -->
+        <div id="plotsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Dynamic Plots rendered via JavaScript -->
+        </div>
+
+    </main>
+
+    <div id="toast" class="fixed bottom-5 right-5 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-2xl transform translate-y-20 opacity-0 transition-all duration-300 z-50 text-sm flex items-center gap-2.5 border border-slate-700">
+        <i class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+        <span id="toastMessage">Berhasil dicatat!</span>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-100 py-4 mt-8 text-center text-xs text-slate-400">
+        <p>Data dan histori transaksi tersimpan otomatis di Google Chrome (localStorage). Aman saat halaman di-refresh!</p>
+    </footer>
+
+    <script>
+        // Total budget utama sesuai ketentuan
+        const TOTAL_BUDGET_UTAMA = 13000000;
+
+        // Data awal sesuai spesifikasi (Total pengeluaran 10jt + Nabung 3jt = 13jt)
+        const defaultData = [
+            { id: 1, name: "Nabung daycare DD", target: 1000000, paid: 0 },
+            { id: 2, name: "Ibun", target: 1200000, paid: 0 },
+            { id: 3, name: "Papap", target: 500000, paid: 0 },
+            { id: 4, name: "Kontrakan, garasi, air & sampah", target: 1650000, paid: 0 },
+            { id: 5, name: "Susu & selai", target: 300000, paid: 0 },
+            { id: 6, name: "Makan", target: 1200000, paid: 0 },
+            { id: 7, name: "Main", target: 750000, paid: 0 },
+            { id: 8, name: "Listrik", target: 250000, paid: 0 },
+            { id: 9, name: "Gas", target: 100000, paid: 0 },
+            { id: 10, name: "Beras", target: 150000, paid: 0 },
+            { id: 11, name: "Indomaret", target: 400000, paid: 0 },
+            { id: 12, name: "Kuota & internet", target: 350000, paid: 0 },
+            { id: 13, name: "Bensin motor", target: 250000, paid: 0 },
+            { id: 14, name: "Bensin mobil", target: 200000, paid: 0 },
+            { id: 15, name: "Galon", target: 250000, paid: 0 },
+            { id: 16, name: "Cicilan", target: 450000, paid: 0 },
+            { id: 17, name: "Arisan", target: 500000, paid: 0 },
+            { id: 18, name: "Vitamin", target: 200000, paid: 0 },
+            { id: 19, name: "Sekolah Kidola & McD", target: 300000, paid: 0 },
+            { id: 20, name: "Nabung", target: 3000000, paid: 0 }
+        ];
+
+        let plots = [];
+
+        // Load data from localStorage on window load
+        window.onload = function() {
+            const saved = localStorage.getItem('rekap_pengeluaran_v4');
+            if (saved) {
+                try {
+                    plots = JSON.parse(saved);
+                } catch(e) {
+                    plots = JSON.parse(JSON.stringify(defaultData));
+                }
+            } else {
+                plots = JSON.parse(JSON.stringify(defaultData));
+            }
+            renderApp();
+        };
+
+        // Save data to localStorage
+        function saveData() {
+            localStorage.setItem('rekap_pengeluaran_v4', JSON.stringify(plots));
+        }
+
+        // Format currency helper
+        function formatRupiah(number) {
+            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(number);
+        }
+
+        // Render application interface and calculate totals
+        function renderApp() {
+            const container = document.getElementById('plotsContainer');
+            container.innerHTML = '';
+
+            let totalTerpakai = 0;
+
+            plots.forEach((plot) => {
+                const target = Number(plot.target) || 0;
+                const paid = Number(plot.paid) || 0;
+                const sisaPos = Math.max(0, target - paid);
+                
+                totalTerpakai += paid;
+                const progressPct = target > 0 ? Math.min(100, Math.max(0, (paid / target) * 100)) : 0;
+                const isLunas = sisaPos === 0;
+
+                const card = document.createElement('div');
+                card.className = `bg-white rounded-2xl p-4 sm:p-5 shadow-sm border transition-all duration-200 flex flex-col justify-between gap-3 ${isLunas ? 'border-emerald-200 bg-emerald-50/10' : 'border-slate-100 hover:border-slate-200'}`;
+
+                card.innerHTML = `
+                    <div class="flex items-start justify-between gap-3">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h4 class="font-semibold text-slate-800 text-sm sm:text-base leading-snug">${escapeHtml(plot.name)}</h4>
+                                ${isLunas ? '<span class="text-[10px] bg-emerald-100 text-emerald-700 px-2.5 py-0.5 rounded-full font-bold">Lunas ✅</span>' : ''}
+                            </div>
+                            <div class="text-xs text-slate-400 mt-0.5">Target Pos: ${formatRupiah(target)}</div>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block">Sisa Pos</span>
+                            <span class="text-base sm:text-lg font-extrabold ${isLunas ? 'text-emerald-600' : 'text-slate-800'}">${formatRupiah(sisaPos)}</span>
+                        </div>
+                    </div>
+
+                    <!-- Progress bar -->
+                    <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                        <div class="bg-indigo-600 h-full transition-all duration-300 rounded-full" style="width: ${progressPct}%"></div>
+                    </div>
+
+                    <div class="text-xs text-slate-500 flex justify-between">
+                        <span>Sudah Dibayar: <strong class="text-slate-700">${formatRupiah(paid)}</strong></span>
+                        <span>${progressPct.toFixed(0)}% Selesai</span>
+                    </div>
+
+                    <!-- Transaction Input & Action -->
+                    <div class="pt-2 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
+                        <div class="flex items-center gap-2 flex-grow">
+                            <span class="text-xs font-semibold text-slate-400">Rp</span>
+                            <input type="number" id="input-${plot.id}" min="0" placeholder="Nominal transaksi..." 
+                                class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-medium text-slate-800 bg-slate-50/50 no-spinner">
+                        </div>
+                        
+                        <div class="flex items-center gap-2 shrink-0">
+                            <button onclick="tambahTransaksi(${plot.id})" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition active:scale-95 flex items-center gap-1.5 cursor-pointer shadow-sm">
+                                <i class="fa-solid fa-plus"></i> Potong
+                            </button>
+                            <button onclick="resetPlot(${plot.id})" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-2 rounded-xl text-xs sm:text-sm font-medium transition active:scale-95" title="Reset Pos Ini">
+                                <i class="fa-solid fa-rotate-left"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            // SISA BUDGET KESELURUHAN (KUNCI UTAMA):
+            // Total Budget Utama (13.000.000) dikurangi Total Transaksi/Paid keseluruhan
+            const sisaBudgetGlobal = TOTAL_BUDGET_UTAMA - totalTerpakai;
+
+            // Update Summary Cards UI
+            document.getElementById('totalTerpakai').innerText = formatRupiah(totalTerpakai);
+            
+            const sisaGlobalEl = document.getElementById('sisaBudgetGlobal');
+            sisaGlobalEl.innerText = formatRupiah(sisaBudgetGlobal);
+            if (sisaBudgetGlobal < 0) {
+                sisaGlobalEl.classList.add('text-rose-200');
+            } else {
+                sisaGlobalEl.classList.remove('text-rose-200');
+            }
+
+            document.getElementById('itemCount').innerText = `${plots.length} Plot`;
+        }
+
+        // Function to add transaction amount to specific plot
+        function tambahTransaksi(id) {
+            const inputEl = document.getElementById(`input-${id}`);
+            const val = Number(inputEl.value);
+
+            if (isNaN(val) || val <= 0) {
+                showToast("Masukkan nominal transaksi yang valid!");
+                return;
+            }
+
+            const plot = plots.find(p => p.id === id);
+            if (plot) {
+                const sisaPosBefore = plot.target - plot.paid;
+                if (val > sisaPosBefore) {
+                    if (!confirm(`Nominal transaksi (${formatRupiah(val)}) melebihi sisa pos saat ini (${formatRupiah(sisaPosBefore)}). Lanjutkan pelunasan pos ini sampai habis?`)) {
+                        return;
+                    }
+                }
+                plot.paid += val;
+                inputEl.value = '';
+                saveData();
+                renderApp();
+                showToast(`Transaksi ${formatRupiah(val)} berhasil dicatat pada ${plot.name}`);
+            }
+        }
+
+        // Reset individual plot paid amount to 0
+        function resetPlot(id) {
+            const plot = plots.find(p => p.id === id);
+            if (plot) {
+                plot.paid = 0;
+                saveData();
+                renderApp();
+                showToast(`Pos ${plot.name} di-reset.`);
+            }
+        }
+
+        // Reset all data to default
+        function resetData() {
+            if (confirm("Reset seluruh data rekap ke pengaturan awal semula?")) {
+                plots = JSON.parse(JSON.stringify(defaultData));
+                saveData();
+                renderApp();
+                showToast("Semua data berhasil di-reset.");
+            }
+        }
+
+        // Toast notification helper
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMessage').innerText = message;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 2500);
+        }
+
+        // Security escape HTML helper
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>
